@@ -18,7 +18,7 @@ type Scheduler struct {
 	done     chan struct{}
 }
 
-func New(artifactURIs ...string) *Scheduler {
+func New(bin, corpus string, artifactURIs ...string) *Scheduler {
 	return &Scheduler{
 		ExecutorInfo: mesos.ExecutorInfo{
 			ExecutorId: &mesos.ExecutorID{Value: proto.String("fuzzlr-executor")},
