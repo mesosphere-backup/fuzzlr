@@ -91,7 +91,10 @@ func (s *Scheduler) Error(_ sched.SchedulerDriver, err string) {
 }
 
 func (s *Scheduler) newTask(id uint64, offer *mesos.Offer) *mesos.TaskInfo {
-	const cpus, mem = .5, 256
+	const maxMem, maxCpus = 2.0, 1024.0
+	cpus, mem := offerCpusAndMem(offer)
+	cpus, mem := math.Min(cpus, maxCpus), math.Min(mem, maxMem)
+
 	name := proto.String(fmt.Sprintf("fuzzlr-", id))
 	return &mesos.TaskInfo{
 		Executor: &s.ExecutorInfo,
@@ -103,6 +106,22 @@ func (s *Scheduler) newTask(id uint64, offer *mesos.Offer) *mesos.TaskInfo {
 		SlaveId: offer.SlaveId,
 		TaskId:  &mesos.TaskID{Value: name},
 	}
+}
+
+// maxTasksForOffer computes how many tasks can be launched using a given offer
+func offerCpusAndMem(offer *mesos.Offer) (float64, float64) {
+	var cpus, mem float64
+
+	for _, resource := range offer.Resources {
+		switch resource.GetName() {
+		case "cpus":
+			cpus += *resource.GetScalar().Value
+		case "mem":
+			mem += *resource.GetScalar().Value
+		}
+	}
+
+	return cpus, mem
 }
 
 func commandURIs(paths ...string) []*mesos.CommandInfo_URI {
