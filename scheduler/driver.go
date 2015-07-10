@@ -15,7 +15,9 @@ func NewDriver(master string, s sched.Scheduler) (sched.SchedulerDriver, error) 
 	return sched.NewMesosSchedulerDriver(sched.DriverConfig{
 		Master: master,
 		Framework: &pb.FrameworkInfo{
-			Name: proto.String("Fuzzlr"),
+			Name:            proto.String("Fuzzlr"),
+			Checkpoint:      proto.Bool(true),
+			FailoverTimeout: proto.Float64(60 * 60 * 24 * 7),
 			// User: proto.String(""),
 		},
 		Scheduler: s,
