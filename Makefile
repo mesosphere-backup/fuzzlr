@@ -17,16 +17,22 @@ bin/fuzzlr_executor: bin
 bin/go-fuzz: bin
 	git submodule init
 	git submodule update
-	cd _vendor/go-fuzz/go-fuzz; go build; mv go-fuzz ../../../bin/
+	cd _vendor/go-fuzz/go-fuzz; \
+	for arch in {darwin,linux}; do \
+	  GOOS=$$arch go build -o ../../../bin/go-fuzz-$$arch; \
+	done
   
 bin/go-fuzz-build: bin
 	git submodule init
 	git submodule update
-	cd _vendor/go-fuzz/go-fuzz-build; \
-	for arch in {darwin,linux,windows}; do \
-	  GOOS=$$arch go build; \
-	  mv go-fuzz-build ../../../bin/; \
- 	done
+	cd _vendor/go-fuzz/go-fuzz-build; go build -o ../../../bin/go-fuzz-build
+
+bin/test: bin/go-fuzz-build
+	for arch in {darwin,linux}; do \
+	  GOOS=$$arch bin/go-fuzz-build -o bin/fmt-fuzz-$$arch.zip github.com/dvyukov/go-fuzz/examples/png; \
+	done
+
+go-fuzz: bin/go-fuzz bin/test
   
 run-scheduler:
 	go run -race cmd/fuzzlr-scheduler/app.go -logtostderr=true
