@@ -32,8 +32,11 @@ bin/test: bin/go-fuzz-build
 	  GOOS=$$arch bin/go-fuzz-build -o bin/fmt-fuzz-$$arch.zip github.com/dvyukov/go-fuzz/examples/png; \
 	done
 
-go-fuzz: bin/go-fuzz bin/test
-  
+bin/corpus.zip: bin
+	zip bin/corpus.zip $(GOPATH)/src/github.com/dvyukov/go-fuzz/examples/png/corpus/*
+
+go-fuzz: bin/go-fuzz bin/test bin/corpus.zip
+
 run-scheduler:
 	go run -race cmd/fuzzlr-scheduler/app.go -logtostderr=true
 
